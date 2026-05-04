@@ -1,0 +1,265 @@
+{
+  "name": "My workflow 4",
+  "nodes": [
+    {
+      "parameters": {
+        "resource": "databasePage",
+        "databaseId": {
+          "__rl": true,
+          "value": "3549f363-1c5c-80f8-9e8b-e16d797eed5d",
+          "mode": "list",
+          "cachedResultName": "Akademik Plagiarism Analiz",
+          "cachedResultUrl": "https://www.notion.so/3549f3631c5c80f89e8be16d797eed5d"
+        },
+        "propertiesUi": {
+          "propertyValues": [
+            {
+              "key": "Analiz Edilecek Metin|rich_text",
+              "textContent": "={{ $('Extract from File').item.json.text.substring(0, 2000) }}"
+            },
+            {
+              "key": "Status|status",
+              "statusValue": "={{ $node[\"Code in JavaScript\"].json.en_yuksek_oran > 70 ? \"Done\" : \"Not started\" }}"
+            },
+            {
+              "key": "Analiz Raporu|rich_text",
+              "textContent": "={{ $json.analiz_metni }}"
+            },
+            {
+              "key": "Benzerlik Oranı (%)|number",
+              "numberValue": "={{ $json.final_oran }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2.2,
+      "position": [
+        1200,
+        0
+      ],
+      "id": "f985d249-4aa2-4730-b667-b57e64e2fc67",
+      "name": "Create a database page",
+      "credentials": {
+        "notionApi": {
+          "id": "3QmgKVH1szNF2RFj",
+          "name": "Notion account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "models/gemini-2.5-flash",
+          "mode": "list",
+          "cachedResultName": "models/gemini-2.5-flash"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=Aşağıdaki iki metni bir denetçi titizliğiyle karşılaştır.\n\nKURALLAR:\n- Eğer benzerlik oranı %75 ve üzerindeyse metinleri \"büyük ölçüde aynı\" kabul et.\n- Ek maddeler, genişletmeler veya küçük içerik farkları \"önemsiz fark\" sayılır.\n- \"Önemli fark\" sadece ana konu, yapı veya içerik tamamen değişmişse yazılır.\n- Aynı içeriğin genişletilmiş versiyonunu \"önemli fark\" olarak yazma.\n- Yorum yapma, abartma, çıkarım yapma.\n- Maksimum 4 madde ve 5 cümle.\n\nVERİLER:\nMetin 1: {{ $node[\"Code in JavaScript\"].json.yeni_metin_kesiti }}\nMetin 2: {{ $node[\"Code in JavaScript\"].json.karsilastirilan_metin_kesiti }}\n\nÇIKTI (SADECE JSON):\n{\n  \"oran\": {{ $node[\"Code in JavaScript\"].json.en_yuksek_oran }},\n  \"rapor\": \"1. Benzerlik seviyesi: [Yüksek/Orta/Düşük]. 2. Ana benzerlikler: [...]. 3. Önemli farklar: [Yoksa 'Önemli fark yok' yaz]. 4. Kısa sonuç: [...].\"\n}"
+            }
+          ]
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1.2,
+      "position": [
+        640,
+        0
+      ],
+      "id": "f90d49bf-470a-45fb-8459-85668ed9c8bf",
+      "name": "Message a model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "LkvsKqBNNLD10LMD",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "formTitle": "Akademik İntihal Analiz Sistemi",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "dosya",
+              "fieldType": "file",
+              "fieldName": "dosya"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.5,
+      "position": [
+        -128,
+        0
+      ],
+      "id": "08d38309-5a40-45f9-9c49-e08c8d1047bd",
+      "name": "On form submission",
+      "webhookId": "a844dd69-bdf8-43e2-88c7-c1037181a405"
+    },
+    {
+      "parameters": {
+        "operation": "pdf",
+        "binaryPropertyName": "dosya",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1.1,
+      "position": [
+        80,
+        0
+      ],
+      "id": "49576fed-9d96-4f7d-a8aa-075dad54aa4f",
+      "name": "Extract from File"
+    },
+    {
+      "parameters": {
+        "jsCode": "const yeniMetin = $(\"Extract from File\").item.json.text || \"\";\nconst tumKayitlar = $(\"Get many database pages\").all();\n\nconst normalize = (s) => {\n  return s\n    .toLowerCase()\n    .replace(/[^\\w\\sğüşıöç]/g, '')\n    .replace(/\\s+/g, ' ')\n    .trim();\n};\n\nconst getWordFreq = (text) => {\n  const words = normalize(text).split(' ');\n  const freq = {};\n  for (const w of words) {\n    if (w.length > 1) {\n      freq[w] = (freq[w] || 0) + 1;\n    }\n  }\n  return freq;\n};\n\nconst cosineSimilarity = (freq1, freq2) => {\n  const allWords = new Set([...Object.keys(freq1), ...Object.keys(freq2)]);\n  \n  let dot = 0;\n  let norm1 = 0;\n  let norm2 = 0;\n\n  for (const word of allWords) {\n    const v1 = freq1[word] || 0;\n    const v2 = freq2[word] || 0;\n\n    dot += v1 * v2;\n    norm1 += v1 * v1;\n    norm2 += v2 * v2;\n  }\n\n  if (norm1 === 0 || norm2 === 0) return 0;\n\n  return (dot / (Math.sqrt(norm1) * Math.sqrt(norm2))) * 100;\n};\n\nconst getSimilarity = (str1, str2) => {\n  if (!str1 || !str2) return 0;\n\n  const freq1 = getWordFreq(str1);\n  const freq2 = getWordFreq(str2);\n\n  return cosineSimilarity(freq1, freq2);\n};\n\nlet enYuksekOran = 0;\nlet enBenzerMetin = \"\";\nlet dosyaSayisi = 0;\n\nfor (const item of tumKayitlar) {\n  const eskiMetin = item.json[\"Analiz Edilecek Metin\"] || \n                   item.json[\"property_analiz_edilecek_metin\"] || \n                   item.json[\"analiz_edilecek_metin\"] || \"\";\n  \n  const temizEskiMetin = eskiMetin.toString().trim();\n\n  if (temizEskiMetin.length > 5) {\n    dosyaSayisi++;\n    const oran = getSimilarity(yeniMetin, temizEskiMetin);\n\n    if (oran > enYuksekOran) {\n      enYuksekOran = oran;\n      enBenzerMetin = temizEskiMetin;\n    }\n  }\n}\n\nreturn {\n  en_yuksek_oran: Math.round(enYuksekOran),\n  toplam_kayit_sayisi: dosyaSayisi,\n  karsilastirilan_metin_kesiti: enBenzerMetin.substring(0, 2500) || \"METİN BULUNAMADI - SÜTUN ADINI KONTROL ET\",\n  yeni_metin_kesiti: yeniMetin.substring(0, 2500) || \"PDF METNİ OKUNAMADI\"\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        480,
+        0
+      ],
+      "id": "24f2ead5-5a72-4990-8030-536962065856",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "resource": "databasePage",
+        "operation": "getAll",
+        "databaseId": {
+          "__rl": true,
+          "value": "3549f363-1c5c-80f8-9e8b-e16d797eed5d",
+          "mode": "list",
+          "cachedResultName": "Akademik Plagiarism Analiz",
+          "cachedResultUrl": "https://www.notion.so/3549f3631c5c80f89e8be16d797eed5d"
+        },
+        "returnAll": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2.2,
+      "position": [
+        272,
+        0
+      ],
+      "id": "27fae7c7-1519-43f2-8cb1-6072d7cb7c5e",
+      "name": "Get many database pages",
+      "credentials": {
+        "notionApi": {
+          "id": "3QmgKVH1szNF2RFj",
+          "name": "Notion account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// 1. Gemini'dan gelen ham metni al\nconst rawContent = $(\"Message a model\").item.json.content.parts[0].text;\n\ntry {\n  // 2. JSON formatındaki metni temizle (kod bloklarını kaldır) ve objeye çevir\n  const cleanJson = rawContent.replace(/```json|```/g, \"\").trim();\n  const aiData = JSON.parse(cleanJson);\n\n  // 3. İlk JS düğümünden gelen orijinal oran ve metin bilgilerini de al\n  const jsData = $(\"Code in JavaScript\").item.json;\n\n  return {\n    final_oran: aiData.oran || jsData.en_yuksek_oran || 0,\n    final_rapor: aiData.rapor || \"Rapor ayrıştırılamadı.\",\n    ogrenci_adi: $(\"On form submission\").item.json[\"ad_soyad\"] || \"Bilinmiyor\",\n    analiz_metni: $(\"Extract from File\").item.json.text.substring(0, 2000)\n  };\n\n} catch (error) {\n  // Eğer Gemini JSON formatında cevap vermezse hata yakalama\n  return {\n    final_oran: $(\"Code in JavaScript\").item.json.en_yuksek_oran || 0,\n    final_rapor: \"Hata: AI yanıtı JSON formatında değil. Ham yanıt: \" + rawContent.substring(0, 500),\n    ogrenci_adi: $(\"On form submission\").item.json[\"ad_soyad\"] || \"Hata\",\n    analiz_metni: $(\"Extract from File\").item.json.text.substring(0, 2000)\n  };\n}"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        992,
+        0
+      ],
+      "id": "2fe4e390-ebf2-4368-81cd-742312a20744",
+      "name": "Code in JavaScript1"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Message a model": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "On form submission": {
+      "main": [
+        [
+          {
+            "node": "Extract from File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract from File": {
+      "main": [
+        [
+          {
+            "node": "Get many database pages",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Message a model",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get many database pages": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create a database page": {
+      "main": [
+        []
+      ]
+    },
+    "Code in JavaScript1": {
+      "main": [
+        [
+          {
+            "node": "Create a database page",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "5e7ab627-4663-47bf-8f10-dbe7eba9e83e",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "4d2b894026951e7bfd93644d0edab2e06a2991a64ca45c82ca55561f7186f770"
+  },
+  "id": "mQXB1zQHZONHd3G3",
+  "tags": []
+}
