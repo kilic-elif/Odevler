@@ -1,0 +1,22 @@
+[Tue May 12 23:44:50 2026] Basarili Sifreleme: gizli_belge.txt -> gizli_belge.aes
+[Tue May 12 23:44:59 2026] Basarili Cozme: gizli_belge.aes -> cozulmus_belge.txt
+[Tue May 12 23:51:39 2026] HATA: Yedekleme basarisiz. Kaynak: Ÿifre.txt
+[Tue May 12 23:52:49 2026] HATA: Yedekleme basarisiz. Kaynak: C:/Users/Elif/Desktop/Ÿifre.txt
+[Tue May 12 23:54:04 2026] YEDEKLEME: C:/Users/Elif/Desktop/test.txt -> C:/Users/Elif/Desktop/backup.aes (Basarili)
+[Tue May 12 23:57:13 2026] YEDEKLEME: C:/Users/Elif/Desktop/test.txt -> C:/Users/Elif/Desktop/yedek.txt (Basarili)
+[Tue May 12 23:58:34 2026] HATA: Gecersiz geri yukleme denemesi. Dosya: C:/Users/Elif/Desktop/yedek.txt
+[Tue May 12 23:59:36 2026] HATA: Gecersiz geri yukleme denemesi. Dosya: C:/Users/Elif/Desktop/yedek.txt
+[Wed May 13 00:01:12 2026] YEDEKLEME: C:/Users/Elif/Desktop/test.txt -> C:/Users/Elif/Desktop/yedek.txt (Basarili)
+[Wed May 13 00:01:34 2026] GERI YUKLEME: C:/Users/Elif/Desktop/yedek.txt -> C:/Users/Elif/Desktop/geridonen.txt (Basarili)
+[Wed May 13 00:04:12 2026] YEDEKLEME: C:/Users/Elif/Desktop/test.txt -> C:/Users/Elif/Desktop/yedek2.txt (Basarili)
+[Wed May 13 00:04:38 2026] GERI YUKLEME: C:/Users/Elif/Desktop/yedek2.txt -> C:/Users/Elif/Desktop/cozumlenen.txt (Basarili)
+[Wed May 13 00:07:02 2026] OTOMATIK YEDEKLEME: C:/Users/Elif/Desktop/test.txt -> backup_20260513_000654.aes
+[Wed May 13 00:07:41 2026] GERI YUKLEME: backup_20260513_000654.aes -> C:/Users/Elif/Desktop/deneme.txt (Basarili)
+[Wed May 13 00:19:55 2026] YEDEKLEME: C:/Users/Elif/Desktop/test.txt -> Yedekler/backup_20260513_001952.aes
+[Wed May 13 00:20:29 2026] GERI YUKLEME: Yedekler/backup_20260513_001952.aes -> C:/Users/Elif/Desktop/test2.txt
+[Wed May 13 00:23:23 2026] YEDEKLEME: C:\Users\Elif\Desktop\test.txt -> Yedekler/backup_20260513_002318.aes
+[Wed May 13 00:23:54 2026] GERI YUKLEME: Yedekler/backup_20260513_002318.aes -> yedek.txt
+[Wed May 13 00:28:45 2026] YEDEKLEME: C:\Users\Elif\Desktop\test.txt -> Yedekler/backup_20260513_002841.aes
+[Wed May 13 00:29:23 2026] GERI YUKLEME: Yedekler/backup_20260513_002841.aes -> C:\Users\Elif\Desktop\abc.txt
+[Sat May 16 13:44:45 2026] YEDEKLEME: C:\Users\Elif\Desktop\test.txt -> Yedekler/backup_20260516_134443.aes
+[Sat May 16 13:45:14 2026] GERI YUKLEME: Yedekler/backup_20260516_134443.aes -> C:\Users\Elif\Desktop\test2.txt

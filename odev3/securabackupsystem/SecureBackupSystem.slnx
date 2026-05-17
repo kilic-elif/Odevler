@@ -1,0 +1,7 @@
+<Solution>
+  <Configurations>
+    <Platform Name="x64" />
+    <Platform Name="x86" />
+  </Configurations>
+  <Project Path="SecureBackupSystem/SecureBackupSystem.vcxproj" Id="adec4305-5db4-4a18-a5fc-02c3f1c4275f" />
+</Solution>
